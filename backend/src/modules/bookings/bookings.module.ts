@@ -1,0 +1,22 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
+import { BoardroomBlocksModule } from '../boardroom-blocks/boardroom-blocks.module';
+import { Boardroom } from '../boardrooms/entities/boardroom.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { BookingsService } from './services/bookings.service';
+import { BookingsController } from './controllers/bookings.controller';
+import { Booking } from './entities/booking.entity';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([Booking, Boardroom]),
+    AuditLogsModule,
+    NotificationsModule,
+    BoardroomBlocksModule,
+  ],
+  providers: [BookingsService],
+  controllers: [BookingsController],
+  exports: [TypeOrmModule, BookingsService],
+})
+export class BookingsModule {}

@@ -1,0 +1,116 @@
+<section class="page">
+  <header class="head">
+    <h1>
+      Welcome
+      @if (userName()?.firstName) {
+        , {{ userName()?.firstName }}
+      }
+    </h1>
+    <p class="lede">
+      @if (isAdmin()) {
+        Here's the state of the system at a glance.
+      } @else {
+        Here's a summary of your activity.
+      }
+    </p>
+  </header>
+
+  @if (error(); as err) {
+    <div class="banner error">{{ err }}</div>
+  }
+
+  @if (loading()) {
+    <div class="empty">Loading…</div>
+  } @else if (isAdmin() && adminStats(); as s) {
+    <div class="stats">
+      <div class="stat">
+        <div class="label">Total users</div>
+        <div class="value">{{ s.totalUsers }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Active boardrooms</div>
+        <div class="value">{{ s.activeBoardrooms }} <span class="muted">/ {{ s.totalBoardrooms }}</span></div>
+      </div>
+      <div class="stat">
+        <div class="label">Bookings today</div>
+        <div class="value">{{ s.bookingsToday }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Bookings this week</div>
+        <div class="value">{{ s.bookingsThisWeek }}</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Bookings by status</h2>
+        <ul class="status-list">
+          <li><span class="dot pending"></span> Pending <strong>{{ s.bookingsByStatus.pending }}</strong></li>
+          <li><span class="dot confirmed"></span> Confirmed <strong>{{ s.bookingsByStatus.confirmed }}</strong></li>
+          <li><span class="dot cancelled"></span> Cancelled <strong>{{ s.bookingsByStatus.cancelled }}</strong></li>
+          <li><span class="dot completed"></span> Completed <strong>{{ s.bookingsByStatus.completed }}</strong></li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Next 5 confirmed bookings</h2>
+        @if (s.upcomingBookings.length === 0) {
+          <p class="muted">Nothing on the calendar.</p>
+        } @else {
+          <ol class="upcoming">
+            @for (b of s.upcomingBookings; track b.id) {
+              <li>
+                <div class="up-title">{{ b.title }}</div>
+                <div class="up-meta">
+                  <span>{{ b.boardroomName }}</span>
+                  <span>·</span>
+                  <span>{{ b.startTime | date: 'MMM d, h:mm a' }}</span>
+                </div>
+              </li>
+            }
+          </ol>
+        }
+      </section>
+    </div>
+  } @else if (!isAdmin() && employeeStats(); as s) {
+    <div class="stats">
+      <div class="stat">
+        <div class="label">My upcoming bookings</div>
+        <div class="value">{{ s.myUpcomingBookings }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Awaiting approval</div>
+        <div class="value">{{ s.myPendingBookings }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Active boardrooms</div>
+        <div class="value">{{ s.activeBoardrooms }}</div>
+      </div>
+      <div class="stat">
+        <div class="label">Unread notifications</div>
+        <div class="value">{{ s.unreadNotifications }}</div>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2>Your upcoming bookings</h2>
+      @if (s.upcomingBookings.length === 0) {
+        <p class="muted">You don't have any upcoming bookings.</p>
+      } @else {
+        <ol class="upcoming">
+          @for (b of s.upcomingBookings; track b.id) {
+            <li>
+              <div class="up-title">{{ b.title }}</div>
+              <div class="up-meta">
+                <span>{{ b.boardroomName }}</span>
+                <span>·</span>
+                <span>{{ b.startTime | date: 'MMM d, h:mm a' }}</span>
+                <span class="status status-{{ b.status }}">{{ b.status }}</span>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  }
+</section>

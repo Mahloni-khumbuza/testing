@@ -1,0 +1,68 @@
+import { CommonModule } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
+
+import { AuthService } from '../../auth/services/auth.service';
+import {
+  AdminDashboardStats,
+  EmployeeDashboardStats
+} from '../models/dashboard.model';
+import { DashboardService } from '../services/dashboard.service';
+
+@Component({
+  selector: 'app-dashboard-page',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './dashboard.page.html',
+  styleUrl: './dashboard.page.css'
+})
+export class DashboardPage {
+  private readonly service = inject(DashboardService);
+  private readonly auth = inject(AuthService);
+
+  readonly adminStats = signal<AdminDashboardStats | null>(null);
+  readonly employeeStats = signal<EmployeeDashboardStats | null>(null);
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+
+  readonly isAdmin = this.auth.isAdmin;
+  readonly userName = this.auth.currentUser;
+
+  constructor() {
+    this.refresh();
+  }
+
+  refresh(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    if (this.isAdmin()) {
+      this.service.admin().subscribe({
+        next: (s) => {
+          this.adminStats.set(s);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(this.errorMessage(err));
+          this.loading.set(false);
+        }
+      });
+    } else {
+      this.service.me().subscribe({
+        next: (s) => {
+          this.employeeStats.set(s);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(this.errorMessage(err));
+          this.loading.set(false);
+        }
+      });
+    }
+  }
+
+  private errorMessage(err: unknown): string {
+    const e = err as { error?: { message?: string | string[] }; message?: string };
+    const msg = e?.error?.message;
+    if (Array.isArray(msg)) return msg.join(', ');
+    return msg || e?.message || 'Something went wrong.';
+  }
+}

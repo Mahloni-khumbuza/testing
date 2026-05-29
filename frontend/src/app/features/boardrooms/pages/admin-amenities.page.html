@@ -1,0 +1,79 @@
+<section class="page">
+  <header class="head">
+    <div>
+      <h1>Amenities</h1>
+      <p class="lede">Manage the equipment and features that can be assigned to boardrooms.</p>
+    </div>
+    <button type="button" class="btn primary" (click)="startCreate()">+ New amenity</button>
+  </header>
+
+  @if (error(); as err) {
+    <div class="banner error">{{ err }}</div>
+  }
+
+  <div class="layout">
+    <div class="list">
+      @if (loading()) {
+        <div class="empty">Loading…</div>
+      } @else if (amenities().length === 0) {
+        <div class="empty">No amenities yet. Create your first one on the right.</div>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Icon</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of amenities(); track a.id) {
+              <tr [class.active]="editingId() === a.id">
+                <td><strong>{{ a.name }}</strong></td>
+                <td class="muted">{{ a.description || '—' }}</td>
+                <td class="muted">{{ a.icon || '—' }}</td>
+                <td class="actions">
+                  <button type="button" class="link" (click)="startEdit(a)">Edit</button>
+                  <button type="button" class="link danger" (click)="remove(a)">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <aside class="form-card">
+      <h2>{{ editingId() ? 'Edit amenity' : 'New amenity' }}</h2>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <label class="field">
+          <span>Name</span>
+          <input type="text" formControlName="name" maxlength="80" />
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+            <small class="error">Name must be 2–80 characters.</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>Description</span>
+          <textarea formControlName="description" rows="3" maxlength="500"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Icon key</span>
+          <input type="text" formControlName="icon" maxlength="64" placeholder="e.g. projector" />
+        </label>
+
+        <div class="form-actions">
+          @if (editingId()) {
+            <button type="button" class="btn ghost" (click)="cancel()">Cancel</button>
+          }
+          <button type="submit" class="btn primary" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Create amenity' }}
+          </button>
+        </div>
+      </form>
+    </aside>
+  </div>
+</section>

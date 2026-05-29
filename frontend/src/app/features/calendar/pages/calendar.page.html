@@ -1,0 +1,69 @@
+<section class="page">
+  <header class="head">
+    <div>
+      <h1>Calendar</h1>
+      <p class="lede">
+        @if (isAdmin()) {
+          Upcoming bookings across the organization, grouped by day.
+        } @else {
+          Your upcoming bookings, grouped by day.
+        }
+      </p>
+    </div>
+  </header>
+
+  <div class="filters">
+    <label class="field">
+      <span>Boardroom</span>
+      <select [value]="boardroomFilter()" (change)="setBoardroomFilter($any($event.target).value)">
+        <option value="">All</option>
+        @for (r of boardrooms(); track r.id) {
+          <option [value]="r.id">{{ r.name }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (error(); as err) {
+    <div class="banner error">{{ err }}</div>
+  }
+
+  @if (loading()) {
+    <div class="empty">Loading…</div>
+  } @else if (groups().length === 0) {
+    <div class="empty">No upcoming bookings.</div>
+  } @else {
+    <div class="agenda">
+      @for (group of groups(); track group.label) {
+        <section class="day">
+          <header class="day-head">{{ group.label }}</header>
+          <ol class="entries">
+            @for (entry of group.entries; track entry.id) {
+              <li class="entry">
+                <div class="time">
+                  {{ entry.startTime | date: 'shortTime' }}
+                  <span class="dash">–</span>
+                  {{ entry.endTime | date: 'shortTime' }}
+                </div>
+                <div class="body">
+                  <div class="title-row">
+                    <strong>{{ entry.title }}</strong>
+                    @if (entry.status === 'pending') {
+                      <span class="badge pending">Pending</span>
+                    }
+                  </div>
+                  <div class="meta">
+                    <span class="room">{{ entry.boardroomName }}</span>
+                    @if (entry.subtitle) {
+                      <span class="muted">· {{ entry.subtitle }}</span>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ol>
+        </section>
+      }
+    </div>
+  }
+</section>

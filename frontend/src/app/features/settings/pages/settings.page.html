@@ -1,0 +1,109 @@
+<section class="page">
+  <header class="head">
+    <div>
+      <h1>System Settings</h1>
+      <p class="lede">
+        Configuration values used across the system.
+        @if (!canEdit()) {
+          Only SuperAdmins can change these values.
+        }
+      </p>
+    </div>
+    @if (canEdit()) {
+      <button type="button" class="btn primary" (click)="toggleCreate()">
+        {{ showCreate() ? 'Close' : '+ New setting' }}
+      </button>
+    }
+  </header>
+
+  @if (error(); as err) {
+    <div class="banner error">{{ err }}</div>
+  }
+
+  @if (canEdit() && showCreate()) {
+    <div class="create-card">
+      <h2>New setting</h2>
+      <form [formGroup]="createForm" (ngSubmit)="submitCreate()" novalidate>
+        <label class="field">
+          <span>Key</span>
+          <input type="text" formControlName="key" placeholder="booking.max_advance_days" />
+          @if (createForm.controls.key.touched && createForm.controls.key.invalid) {
+            <small class="error">Use lowercase letters, digits, dots, hyphens, underscores.</small>
+          }
+        </label>
+        <label class="field">
+          <span>Value</span>
+          <input type="text" formControlName="value" />
+        </label>
+        <label class="field">
+          <span>Description</span>
+          <textarea formControlName="description" rows="2" maxlength="500"></textarea>
+        </label>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" (click)="toggleCreate()">Cancel</button>
+          <button type="submit" class="btn primary" [disabled]="saving()">
+            {{ saving() ? 'Creating…' : 'Create setting' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="list">
+    @if (loading()) {
+      <div class="empty">Loading…</div>
+    } @else if (settings().length === 0) {
+      <div class="empty">No settings yet.</div>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th>Description</th>
+            <th>Updated</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of settings(); track s.id) {
+            <tr [class.editing]="editingId() === s.id">
+              @if (editingId() === s.id) {
+                <td colspan="5" class="edit-row">
+                  <form [formGroup]="editForm" (ngSubmit)="submitEdit(s)" novalidate class="inline-form">
+                    <div class="inline-key"><strong>{{ s.key }}</strong></div>
+                    <label class="field">
+                      <span>Value</span>
+                      <input type="text" formControlName="value" />
+                    </label>
+                    <label class="field">
+                      <span>Description</span>
+                      <input type="text" formControlName="description" maxlength="500" />
+                    </label>
+                    <div class="form-actions">
+                      <button type="button" class="btn ghost small" (click)="cancelEdit()">Cancel</button>
+                      <button type="submit" class="btn primary small" [disabled]="saving()">
+                        {{ saving() ? 'Saving…' : 'Save' }}
+                      </button>
+                    </div>
+                  </form>
+                </td>
+              } @else {
+                <td><code>{{ s.key }}</code></td>
+                <td class="value">{{ s.value || '—' }}</td>
+                <td class="muted">{{ s.description || '—' }}</td>
+                <td class="muted small">{{ s.updatedAt | date: 'short' }}</td>
+                <td class="actions">
+                  @if (canEdit()) {
+                    <button type="button" class="link" (click)="startEdit(s)">Edit</button>
+                    <button type="button" class="link danger" (click)="remove(s)">Delete</button>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</section>

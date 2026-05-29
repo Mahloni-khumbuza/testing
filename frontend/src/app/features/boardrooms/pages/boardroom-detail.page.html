@@ -1,0 +1,42 @@
+<section class="page">
+  <a class="back" routerLink="/employee/boardrooms">← Back to all boardrooms</a>
+
+  @if (loading()) {
+    <div class="empty">Loading…</div>
+  } @else if (error(); as err) {
+    <div class="banner error">{{ err }}</div>
+  } @else if (boardroom(); as room) {
+    <article class="detail">
+      <header class="head">
+        <h1>{{ room.name }}</h1>
+        <span class="capacity">Seats {{ room.capacity }}</span>
+      </header>
+
+      @if (room.location) {
+        <div class="meta">📍 {{ room.location }}</div>
+      }
+
+      @if (room.description) {
+        <p class="desc">{{ room.description }}</p>
+      }
+
+      <section class="amenities">
+        <h2>Amenities</h2>
+        @if (room.amenities.length === 0) {
+          <p class="muted">No amenities listed for this room.</p>
+        } @else {
+          <ul class="amenity-list">
+            @for (a of room.amenities; track a.id) {
+              <li>
+                <strong>{{ a.name }}</strong>
+                @if (a.description) {
+                  <span class="muted">— {{ a.description }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </article>
+  }
+</section>
