@@ -24,7 +24,10 @@ import { SuperAdminGuard } from '../../../shared/guards/super-admin.guard';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
+import { User } from '../entities/user.entity';
 import { UsersService } from '../services/users.service';
+
+type SafeUser = Omit<User, 'passwordHash'>;
 
 interface AuthedRequest {
   user: { sub: string };
@@ -39,7 +42,7 @@ export class UsersController {
 
   @Get('me')
   @ApiOkResponse({ description: 'Returns the currently authenticated user.' })
-  async me(@Req() req: AuthedRequest) {
+  async me(@Req() req: AuthedRequest): Promise<SafeUser | null> {
     const user = await this.usersService.findById(req.user.sub);
     if (!user) {
       return null;
@@ -49,14 +52,14 @@ export class UsersController {
 
   @Get()
   @ApiOkResponse({ type: [UserResponseDto] })
-  async findAll() {
+  async findAll(): Promise<SafeUser[]> {
     const users = await this.usersService.findAll();
     return users.map((u) => this.usersService.sanitize(u));
   }
 
   @Get(':id')
   @ApiOkResponse({ type: UserResponseDto })
-  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<SafeUser> {
     const user = await this.usersService.findByIdOrFail(id);
     return this.usersService.sanitize(user);
   }
@@ -64,7 +67,7 @@ export class UsersController {
   @Post()
   @UseGuards(SuperAdminGuard)
   @ApiCreatedResponse({ type: UserResponseDto })
-  async create(@Body() dto: CreateUserDto, @Req() req: AuthedRequest) {
+  async create(@Body() dto: CreateUserDto, @Req() req: AuthedRequest): Promise<SafeUser> {
     const user = await this.usersService.createFromDto(dto, req.user.sub);
     return this.usersService.sanitize(user);
   }
@@ -76,7 +79,7 @@ export class UsersController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateUserDto,
     @Req() req: AuthedRequest,
-  ) {
+  ): Promise<SafeUser> {
     const user = await this.usersService.update(id, dto, req.user.sub);
     return this.usersService.sanitize(user);
   }
